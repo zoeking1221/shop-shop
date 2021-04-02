@@ -1,8 +1,14 @@
 import {
     UPDATE_PRODUCTS,
     UPDATE_CATEGORIES,
-    UPDATE_CURRENT_CATEGORY
-} from "./actions";
+    UPDATE_CURRENT_CATEGORY,
+    ADD_TO_CART,
+    ADD_MULTIPLE_TO_CART,
+    REMOVE_FROM_CART,
+    UPDATE_CART_QUANTITY,
+    CLEAR_CART,
+    TOGGLE_CART
+  } from './actions';
 import { useReducer } from 'react';
 
 export const reducer = (state, action) => {
@@ -25,6 +31,58 @@ export const reducer = (state, action) => {
             ...state,
             currentCategory: action.currentCategory
         };   
+
+    case ADD_TO_CART:
+        return {
+            ...state,
+            cartOpen: true,
+            // spread operator to preserve everything else on state
+            // update the cart property to add action.product to the end of array
+            cart: [...state.cart, action.product]
+        };
+
+    case ADD_MULTIPLE_TO_CART:
+        return {
+            ...state,
+            cart: [...state.cart, ...action.products],
+        };
+
+    // filter method only keeps the items that don't match the provided _id property
+    // in return statement, we check length of the array to set cartOpen to false when array empty
+    case REMOVE_FROM_CART:
+        let newState = state.cart.filter(product => {
+            return product._id !== action._id;
+        });
+        return {
+            ...state,
+            cartOpen: newState.length > 0,
+            cart: newState
+        };
+
+        case UPDATE_CART_QUANTITY:
+            return {
+              ...state,
+              cartOpen: true,
+              cart: state.cart.map(product => {
+                if (action._id === product._id) {
+                  product.purchaseQuantity = action.purchaseQuantity;
+                }
+                return product;
+              })
+            };
+
+        case CLEAR_CART:
+            return {
+                ...state,
+                cartOpen: false,
+                cart: []
+            };
+
+        case TOGGLE_CART:
+            return {
+                ...state,
+                cartOpen: !state.cartOpen
+            };
   
       default:
         return state;
@@ -37,3 +95,4 @@ export const reducer = (state, action) => {
   export function useProductReducer(initialState) {
       return useReducer(reducer, initialState);
   }
+
